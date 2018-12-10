@@ -9,11 +9,11 @@ import java.util.Random;
 public class Miner implements Runnable {
 
   private final Blockchain<?> blockchain;
-  private final Long id;
+  private final String id;
   private Sign sign;
   private final Random random;
 
-  public Miner(Blockchain<?> blockchain, Long id, Sign sign) {
+  public Miner(Blockchain<?> blockchain, String id, Sign sign) {
     this.blockchain = blockchain;
     this.id = id;
     this.sign = sign;

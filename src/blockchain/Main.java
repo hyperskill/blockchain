@@ -2,7 +2,10 @@ package blockchain;
 
 import blockchain.crypto.Sign;
 import blockchain.crypto.SignValidator;
+import blockchain.currency.AccountTransactions;
 import blockchain.data.Message;
+import blockchain.data.Transaction;
+import blockchain.data.format.CSVTransactionFormat;
 import blockchain.data.format.PlanMessageFormat;
 import blockchain.io.FilePersister;
 import blockchain.io.Persister;
@@ -17,32 +20,28 @@ public class Main {
 
     Sign sign = new Sign("keys/privateKey");
     SignValidator signValidator = new SignValidator("keys/publicKey");
+
     Persister persister = new FilePersister(OUTPUT_FILE_NAME);
-    Blockchain<Message> blockchain = new Blockchain<>(persister,
-        new PlanMessageFormat(), signValidator);
+    Blockchain<Transaction> blockchain = new Blockchain<>(persister,
+        new CSVTransactionFormat(), signValidator);
 
     Thread[] miners = new Thread[NUMBER_OF_MINERS];
 
     for (int i = 0; i < NUMBER_OF_MINERS; i++) {
-      miners[i] = new Thread(new Miner(blockchain, Long.valueOf(i), sign));
+      miners[i] = new Thread(
+          new Miner(blockchain, String.format("miner%s", String.valueOf(i)), sign));
     }
     for (Thread miner : miners) {
       miner.start();
     }
 
-    Thread.sleep(1000);
-    blockchain.appendData(new Message("Tom", "Hey, I'm first!"));
-    blockchain.appendData(new Message("Sarah", "It's not fair!"));
-    Thread.sleep(2000);
-    blockchain.appendData(
-        new Message("Sarah", "You always will be first because it is your blockchain!"));
-    Thread.sleep(1000);
-    blockchain.appendData(new Message("Sarah", "Anyway, thank you for this amazing chat."));
-    Thread.sleep(2000);
-    blockchain
-        .appendData(new Message("Tom", "You're welcome :)"));
-    blockchain.appendData(
-        new Message("Nick", "Hey Tom, nice chat"));
+    blockchain.appendData(new Transaction("miner9", "miner1", 30.0));
+    blockchain.appendData(new Transaction("miner9", "miner2", 30.0));
+    blockchain.appendData(new Transaction("miner9", "Nick", 30.0));
+
+    Thread.sleep(10000);
+    AccountTransactions transactions = new AccountTransactions(blockchain);
+    transactions.walletBallance("miner9");
 
     for (Thread miner : miners) {
       miner.interrupt();

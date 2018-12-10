@@ -5,11 +5,13 @@ import blockchain.data.format.DataFormatter;
 import blockchain.io.Persister;
 import blockchain.utils.StringUtil;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Blockchain<T> {
@@ -17,11 +19,12 @@ public class Blockchain<T> {
   private static final Long ACCEPTABLE_TIME = TimeUnit.SECONDS.toMillis(3);
 
   private final List<Block> blocks;
-  private final List<T> pendingMessages;
-  private int prefixLength;
+  private final List<T> pendingData;
   private final Persister persister;
-  private DataFormatter<T> dataFormatter;
-  private SignValidator signValidator;
+  private final DataFormatter<T> dataFormatter;
+  private final SignValidator signValidator;
+
+  private int prefixLength;
 
   public Blockchain(Persister persister,
       DataFormatter<T> dataFormatter, SignValidator signValidator) {
@@ -34,25 +37,25 @@ public class Blockchain<T> {
       this.blocks = blocks;
     } else {
       this.blocks = new LinkedList<>(Collections.singleton(
-          new Block(0, 0L, "0", StringUtil.applySha256("0" + 0),
-              "no messages",
+          new Block(0, "0", "0", StringUtil.applySha256("0" + 0),
+              "",
               null, System.currentTimeMillis(), 0, 0L)));
       persister.save(blocks);
     }
-    pendingMessages = new LinkedList<>();
+    pendingData = new LinkedList<>();
   }
 
   public synchronized void accept(Block newBlock) {
     if (isValid(newBlock)) {
       outputAndAdjust(newBlock);
       blocks.add(newBlock);
-      pendingMessages.clear();
+      pendingData.clear();
       persister.save(blocks);
     }
   }
 
   public synchronized void appendData(T data) {
-    pendingMessages.add(data);
+    pendingData.add(data);
   }
 
   public synchronized String getPrefix() {
@@ -63,10 +66,10 @@ public class Blockchain<T> {
 
   public synchronized String pendingData() {
     StringJoiner stringJoiner = new StringJoiner("\n");
-    if (pendingMessages.isEmpty()) {
-      return "no messages";
+    if (pendingData.isEmpty()) {
+      return "";
     }
-    pendingMessages.stream()
+    pendingData.stream()
         .map(dataFormatter::format)
         .forEach(stringJoiner::add);
     return stringJoiner.toString();
@@ -74,6 +77,15 @@ public class Blockchain<T> {
 
   public synchronized Block tail() {
     return blocks.get(blocks.size() - 1);
+  }
+
+  public synchronized List<T> dataFromBlockchain() {
+    return blocks.stream()
+        .map(Block::getData)
+        .flatMap(x -> Arrays.stream(x.split("\n")))
+        .filter(x -> !x.isEmpty())
+        .map(dataFormatter::parse)
+        .collect(Collectors.toList());
   }
 
   private boolean isValid(Block newBlock) {
