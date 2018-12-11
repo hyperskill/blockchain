@@ -8,11 +8,12 @@ public class Block implements Serializable {
   private final String minerId;
   private final String hashPreviousBlock;
   private final String hash;
-  private final String data;
-  private final byte[] dataSignature;
   private final Long timestamp;
   private final Integer magicNumber;
   private final Long generationTime;
+
+  private String data;
+  private byte[] dataSignature;
 
 
   public Block(Integer id, String minerId, String hashPreviousBlock, String hash,
@@ -26,6 +27,12 @@ public class Block implements Serializable {
     this.timestamp = timestamp;
     this.magicNumber = magicNumber;
     this.generationTime = generationTime;
+  }
+
+  public Block(int id, String minerId, String hashPreviousBlock, String hash, long timestamp,
+      int magicNumber,
+      long generationTime) {
+    this(id, minerId, hashPreviousBlock, hash, null, null, timestamp, magicNumber, generationTime);
   }
 
   public Integer getId() {
@@ -48,6 +55,10 @@ public class Block implements Serializable {
     return data;
   }
 
+  public void setData(String data) {
+    this.data = data;
+  }
+
   public Integer getMagicNumber() {
     return magicNumber;
   }
@@ -62,5 +73,9 @@ public class Block implements Serializable {
 
   public byte[] getDataSignature() {
     return dataSignature;
+  }
+
+  public void setDataSignature(byte[] dataSignature) {
+    this.dataSignature = dataSignature;
   }
 }

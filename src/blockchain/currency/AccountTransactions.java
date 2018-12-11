@@ -3,11 +3,10 @@ package blockchain.currency;
 import blockchain.Blockchain;
 import blockchain.data.Transaction;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class AccountTransactions {
 
+  public static final int INITIAL_SIGNIN_SUM = 100;
   private final Blockchain<Transaction> transactionBlockchain;
 
   public AccountTransactions(
@@ -16,12 +15,16 @@ public class AccountTransactions {
   }
 
   public Double walletBallance(String userId) {
-    double total = 0.0;
     List<Transaction> transactions = transactionBlockchain.dataFromBlockchain();
-    List<Transaction> userSent = transactions.stream().filter(t -> t.getFrom().equals(userId))
-        .collect(Collectors.toList());
-    List<Transaction> userRecieved = transactions.stream().filter(t -> t.getTo().equals(userId))
-        .collect(Collectors.toList());
-    return total;
+    double userSent = transactions.stream().filter(t -> t.getFrom().equals(userId))
+        .map(x -> -x.getAmount())
+        .mapToDouble(Double::doubleValue)
+        .sum();
+    double userRecieved = transactions.stream().filter(t -> t.getTo().equals(userId))
+        .map(Transaction::getAmount)
+        .mapToDouble(Double::doubleValue)
+        .sum();
+
+    return INITIAL_SIGNIN_SUM + userSent + userRecieved;
   }
 }
