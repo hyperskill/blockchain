@@ -37,26 +37,13 @@ public class Main {
     Thread.sleep(3000);
     AccountTransactions transactions = new AccountTransactions(blockchain);
 
-    if (transactions.walletBallance("miner9") > 30.0) {
-      blockchain.appendData(new Transaction("miner9", "miner1", 30.0));
-    }
-    if (transactions.walletBallance("miner9") > 0) {
-      blockchain.appendData(new Transaction("miner9", "miner2", 30.0));
-    }
-    if (transactions.walletBallance("miner9") > 0) {
-      blockchain.appendData(new Transaction("miner9", "Nick", 30.0));
-    }
-    if (transactions.walletBallance("miner9") > 30.0) {
-      blockchain.appendData(new Transaction("miner9", "Other", 30.0));
-    }
+    blockchain.appendData(new Transaction("miner9", "miner1", 30.0));
+    blockchain.appendData(new Transaction("miner9", "miner2", 30.0));
+    blockchain.appendData(new Transaction("miner9", "Nick", 30.0));
+    blockchain.appendData(new Transaction("miner9", "Bob", 10.0));
+    blockchain.appendData(new Transaction("miner7", "Alice", 10.0));
 
     Thread.sleep(10000);
-
-    for (int i = 0; i < NUMBER_OF_MINERS; i++) {
-      String minerId = String.format("miner%s", String.valueOf(i));
-      Double b = transactions.walletBallance(minerId);
-      System.out.println(minerId + " has " + b + " VC");
-    }
 
     for (Thread miner : miners) {
       miner.interrupt();
